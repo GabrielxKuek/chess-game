@@ -1,7 +1,7 @@
 #card-game-board {
   width: 100%;
-  max-width: 1400px;
-  aspect-ratio: 16 / 9; /* Adjust this based on your board.jpg's actual ratio */
+  max-width: 700px;
+  aspect-ratio: 16 / 9;
   background-image: url('/cards/board.jpg');
   background-size: cover;
   background-position: center;
@@ -26,17 +26,18 @@
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none; /* Allow cards to be clickable */
+  pointer-events: none; /* Board is not clickable, only cards are */
 }
 
 .card-container > * {
-  pointer-events: auto; /* Make individual cards clickable */
+  pointer-events: auto; /* Cards are clickable */
+  position: absolute; /* Manual positioning */
 }
 
 #cardback {
-    width: 110px;
-    height: 150px;
-    position: absolute;
-    left: 650px;
-    top: 60px;
+  width: 110px;
+  height: 150px;
+  position: absolute;
+  left: 650px;
+  top: 60px;
 }

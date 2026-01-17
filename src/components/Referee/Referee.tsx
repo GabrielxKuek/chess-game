@@ -8,6 +8,7 @@ import Chessboard from "../Chessboard/Chessboard";
 import CardGameBoard from "../CardGame/CardGameBoard";
 import { Howl } from "howler";
 import { getAIMove } from "../../services/ChessAI";
+import FightingGameModal from "../FightingGame/FightingGame";
 import "./Referee.css";
 import {
   bishopMove,
@@ -40,7 +41,8 @@ export default function Referee() {
   const [board, setBoard] = useState<Board>(initialBoard.clone());
   const [promotionPawn, setPromotionPawn] = useState<Piece>();
   const [isAIThinking, setIsAIThinking] = useState(false);
-  const [kingCaptured, setKingCaptured] = useState(false); 
+  const [kingCaptured, setKingCaptured] = useState(false);
+  const [isFightingGameOpen, setIsFightingGameOpen] = useState(false); 
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
@@ -60,6 +62,7 @@ export default function Referee() {
     if (kingCaptured) {
       setTimeout(() => {
         setKingCaptured(false);
+        setIsFightingGameOpen(true); // Opens fighting game after video
       }, 4000)
     }
   }, [kingCaptured])
@@ -354,19 +357,18 @@ export default function Referee() {
           justifyContent: 'center',
           zIndex: 2000
         }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #8B0000, #FF0000)',
-            color: 'white',
-            padding: '60px 80px',
-            fontSize: '48px',
-            fontWeight: 'bold',
-            borderRadius: '20px',
-            boxShadow: '0 0 50px rgba(255, 0, 0, 0.5)',
-            textAlign: 'center',
-            animation: 'pulse 1.5s ease-in-out infinite'
-          }}>
-            👑 KING CAPTURED! 👑
-          </div>
+          <video 
+            autoPlay 
+            muted 
+            style={{
+              maxWidth: '80%',
+              maxHeight: '80%',
+              borderRadius: '20px',
+              boxShadow: '0 0 50px rgba(255, 0, 0, 0.5)'
+            }}
+          >
+            <source src="/sharingan.mp4" type="video/mp4" />
+          </video>
         </div>
       )}
       
@@ -427,6 +429,11 @@ export default function Referee() {
         <Chessboard playMove={playMove} pieces={board.pieces} />
         <CardGameBoard cards={cards} playCard={playCard} />
       </div>
+
+      <FightingGameModal 
+        isOpen={isFightingGameOpen} 
+        onClose={() => setIsFightingGameOpen(false)} 
+      />
     </div>
   );
 }

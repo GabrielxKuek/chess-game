@@ -14,7 +14,6 @@ export default function CustomCursor({
   normalCursor, 
   hoverCursor, 
   grabbingCursor, 
-  armColor = '#FFD1A3',
   rotationOrigin = 'center center', // Default rotation point
   angleOffset = 90 // Default angle offset
 }: CustomCursorProps) {

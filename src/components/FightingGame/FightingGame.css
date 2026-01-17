@@ -1,0 +1,8 @@
+/* Add any fighting-game-specific styling overrides here */
+.fighting-game-modal .modal-content {
+  /* Custom styling for fighting game if needed */
+}
+
+.fighting-game-modal .modal-header {
+  background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+}

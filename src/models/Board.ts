@@ -26,45 +26,62 @@ export class Board {
     return this.totalTurns % 2 === 0 ? TeamType.OPPONENT : TeamType.OUR;
   }
 
+  playAIMove(playedPiece: Piece, destination: Position): boolean {
+    this.pieces = this.pieces.reduce((results, piece) => {
+      if (piece.samePiecePosition(playedPiece)) {
+        piece.position.x = destination.x;
+        piece.position.y = destination.y;
+        piece.hasMoved = true;
+        results.push(piece);
+      } else if (!piece.samePosition(destination)) {
+        results.push(piece);
+      }
+      // Any piece at destination gets captured (not added to results)
+      return results;
+    }, [] as Piece[]);
+
+    this.calculateAllMoves();
+    return true;
+  }
+
   calculateAllMoves() {
-    // Calculate the moves of all the pieces
+    // Calculate moves for ALL pieces first
     for (const piece of this.pieces) {
       piece.possibleMoves = this.getValidMoves(piece, this.pieces);
     }
 
-    // Calculate castling moves
+    // Add castling for kings
     for (const king of this.pieces.filter((p) => p.isKing)) {
       if (king.possibleMoves === undefined) continue;
-
       king.possibleMoves = [
         ...king.possibleMoves,
         ...getCastlingMoves(king, this.pieces),
       ];
     }
 
-    // Check if the current team moves are valid
-    this.checkCurrentTeamMoves();
+    // ONLY enforce rules for PLAYER (OUR team)
+    if (this.currentTeam === TeamType.OUR) {
+      this.checkCurrentTeamMoves();
+    }
 
-    // Remove the posibble moves for the team that is not playing
+    // Clear moves for non-current team
     for (const piece of this.pieces.filter(
       (p) => p.team !== this.currentTeam
     )) {
       piece.possibleMoves = [];
     }
 
-    // Check if the playing team still has moves left
-    // Otherwise, checkmate!
-    if (
-      this.pieces
-        .filter((p) => p.team === this.currentTeam)
-        .some(
-          (p) => p.possibleMoves !== undefined && p.possibleMoves.length > 0
-        )
-    )
-      return;
+    // Check for checkmate (only matters for player)
+    if (this.currentTeam === TeamType.OUR) {
+      if (
+        this.pieces
+          .filter((p) => p.team === this.currentTeam)
+          .some((p) => p.possibleMoves !== undefined && p.possibleMoves.length > 0)
+      )
+        return;
 
-    this.winningTeam =
-      this.currentTeam === TeamType.OUR ? TeamType.OPPONENT : TeamType.OUR;
+      this.winningTeam = TeamType.OPPONENT;
+    }
   }
 
   checkCurrentTeamMoves() {
@@ -92,7 +109,12 @@ export class Board {
         // Get the king of the cloned board
         const clonedKing = simulatedBoard.pieces.find(
           (p) => p.isKing && p.team === simulatedBoard.currentTeam
-        )!;
+        );
+        
+        // ADD THIS CHECK - If king is captured, skip this validation
+        if (!clonedKing) {
+          continue;
+        }
 
         // Loop through all enemy pieces, update their possible moves
         // And check if the current team's king will be in danger

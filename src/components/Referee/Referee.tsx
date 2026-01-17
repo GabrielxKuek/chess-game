@@ -37,12 +37,17 @@ const checkmateSound = new Howl({
   src: ["/sounds/move-check.mp3"],
 });
 
-export default function Referee() {
+interface RefereeProps {
+  onFightingGameStateChange: (isOpen: boolean) => void;
+}
+
+export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   const [board, setBoard] = useState<Board>(initialBoard.clone());
   const [promotionPawn, setPromotionPawn] = useState<Piece>();
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [kingCaptured, setKingCaptured] = useState(false);
   const [isFightingGameOpen, setIsFightingGameOpen] = useState(false); 
+  const [showPrayingEffect, setShowPrayingEffect] = useState(false);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
@@ -80,6 +85,31 @@ export default function Referee() {
       setKingCaptured(true);
     }
   }
+
+  // Notify parent when fighting game opens/closes
+  useEffect(() => {
+    onFightingGameStateChange(isFightingGameOpen);
+  }, [isFightingGameOpen, onFightingGameStateChange]);
+
+  // Listen for praying detection from App
+  useEffect(() => {
+    const handlePrayingEvent = () => {
+      console.log("🙏 Praying gesture detected in Referee!");
+      
+      setShowPrayingEffect(true);
+      
+      setTimeout(() => {
+        setIsFightingGameOpen(true);
+      }, 1500);
+      
+      setTimeout(() => {
+        setShowPrayingEffect(false);
+      }, 3000);
+    };
+
+    window.addEventListener('prayingDetected', handlePrayingEvent);
+    return () => window.removeEventListener('prayingDetected', handlePrayingEvent);
+  }, []);
 
   async function makeAIMove() {
     setIsAIThinking(true);
@@ -343,6 +373,27 @@ export default function Referee() {
 
   return (
     <div className="referee-container">
+      {showPrayingEffect && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0) 70%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 5000,
+          pointerEvents: 'none',
+          animation: 'prayerGlow 3s ease-out'
+        }}>
+          <div style={{ fontSize: '150px', animation: 'prayerPulse 1.5s ease-in-out infinite' }}>
+            🙏
+          </div>
+        </div>
+      )}
+
       {kingCaptured && (
         <div style={{
           position: 'fixed',

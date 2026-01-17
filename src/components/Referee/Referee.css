@@ -1,0 +1,32 @@
+/* Container for the entire referee component */
+.referee-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #1a1a1a;
+  gap: 30px;
+}
+
+/* Game boards container */
+.game-boards {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Or if you want them side by side on larger screens */
+.game-boards-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1800px;
+}

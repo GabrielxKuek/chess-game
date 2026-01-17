@@ -90,7 +90,7 @@ export default function Chessboard({playMove, pieces} : Props) {
       );
 
       if (currentPiece) {
-        var succes = playMove(currentPiece.clone(), new Position(x, y));
+        const succes = playMove(currentPiece.clone(), new Position(x, y));
 
         if(!succes) {
           //RESETS THE PIECE POSITION

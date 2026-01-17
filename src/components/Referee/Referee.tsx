@@ -1,16 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { initialBoard } from "../../Constants";
 import { Piece, Position } from "../../models";
 import { Board } from "../../models/Board";
 import { Pawn } from "../../models/Pawn";
 import {
   bishopMove,
-  getPossibleBishopMoves,
-  getPossibleKingMoves,
-  getPossibleKnightMoves,
-  getPossiblePawnMoves,
-  getPossibleQueenMoves,
-  getPossibleRookMoves,
   kingMove,
   knightMove,
   pawnMove,
@@ -19,7 +13,15 @@ import {
 } from "../../referee/rules";
 import { PieceType, TeamType } from "../../Types";
 import Chessboard from "../Chessboard/Chessboard";
+import CardGameBoard from "../CardGame/CardGameBoard";
 import { Howl } from "howler";
+import "./Referee.css";
+
+interface CardData {
+  id: string;
+  image?: string;
+  position: { x: number; y: number };
+}
 
 const moveSound = new Howl({
   src: ["/sounds/move-self.mp3"],
@@ -38,12 +40,71 @@ export default function Referee() {
   const [promotionPawn, setPromotionPawn] = useState<Piece>();
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
+  const [cards, setCards] = useState<CardData[]>([
+    { 
+      id: "card-1", 
+      image: "./cards/ace.png", 
+      position: { x: 100, y: 200 } 
+    },
+    { 
+      id: "card-2", 
+      image: "./cards/blueeyes.jpg", 
+      position: { x: 200, y: 200 } 
+    },
+    { 
+      id: "card-3", 
+      image: "./cards/pawn.jpg", 
+      position: { x: 300, y: 200 } 
+    },
+    { 
+      id: "card-4", 
+      image: "./cards/pawn.jpg", 
+      position: { x: 400, y: 200 } 
+    },
+    { 
+      id: "card-5", 
+      image: "./cards/diamond.png", 
+      position: { x: 500, y: 200 } 
+    },
+    { 
+      id: "card-6", 
+      image: "./cards/pawn.jpg", 
+      position: { x: 150, y: 350 } 
+    },
+    { 
+      id: "card-7", 
+      image: "./cards/pawn.jpg", 
+      position: { x: 250, y: 350 } 
+    },
+    { 
+      id: "card-8", 
+      image: "./cards/pawn.jpg", 
+      position: { x: 350, y: 350 } 
+    },
+  ]);
 
-  function playMove(playedPiece: Piece, destination: Position): boolean {
-    // If the playing piece doesn't have any moves return
+  function playCard(card: CardData, position: { x: number; y: number }): boolean {
+    console.log(`Playing card ${card.id} at position:`, position);
+    
+    const isValidMove = true;
+    
+    if (isValidMove) {
+      setCards(prevCards =>
+        prevCards.map(c =>
+          c.id === card.id
+            ? { ...c, position: position }
+            : c
+        )
+      );
+      return true;
+    }
+    
+    return false;
+  }
+
+  function playMove(playedPiece: Piece, destination: Position): boolean {      
     if (playedPiece.possibleMoves === undefined) return false;
 
-    // Prevent the inactive team from playing
     if (playedPiece.team === TeamType.OUR && board.totalTurns % 2 !== 1)
       return false;
     if (playedPiece.team === TeamType.OPPONENT && board.totalTurns % 2 !== 0)
@@ -64,12 +125,9 @@ export default function Referee() {
       playedPiece.team
     );
 
-    // playMove modifies the board thus we
-    // need to call setBoard
     setBoard(() => {
       const clonedBoard = board.clone();
       clonedBoard.totalTurns += 1;
-      // Playing the move
       playedMoveIsValid = clonedBoard.playMove(
         enPassantMove,
         validMove,
@@ -89,7 +147,6 @@ export default function Referee() {
       return clonedBoard;
     });
 
-    // This is for promoting a pawn
     let promotionRow = playedPiece.team === TeamType.OUR ? 7 : 0;
 
     if (destination.y === promotionRow && playedPiece.isPawn) {
@@ -134,8 +191,6 @@ export default function Referee() {
     return false;
   }
 
-  //TODO
-  //Add stalemate!
   function isValidMove(
     initialPosition: Position,
     desiredPosition: Position,
@@ -232,10 +287,11 @@ export default function Referee() {
   }
 
   return (
-    <>
+    <div className="referee-container">
       <p style={{ color: "white", fontSize: "24px", textAlign: "center" }}>
         Total turns: {board.totalTurns}
       </p>
+      
       <div className="modal hidden" ref={modalRef}>
         <div className="modal-body">
           <img
@@ -256,6 +312,7 @@ export default function Referee() {
           />
         </div>
       </div>
+      
       <div className="modal hidden" ref={checkmateModalRef}>
         <div className="modal-body">
           <div className="checkmate-body">
@@ -267,7 +324,11 @@ export default function Referee() {
           </div>
         </div>
       </div>
-      <Chessboard playMove={playMove} pieces={board.pieces} />
-    </>
+      
+      <div className="game-boards">
+        <Chessboard playMove={playMove} pieces={board.pieces} />
+        <CardGameBoard cards={cards} playCard={playCard} />
+      </div>
+    </div>
   );
 }

@@ -24,3 +24,11 @@ dist-ssr
 *.sw?
 
 .env
+
+gandhi_training.csv
+gandhi_training.jsonl
+gandhi_quotes.txt
+combined_gandhi_training.csv
+combined_gandhi_training.jsonl
+combined_gandhi_system_prompt.txt
+gandhi_model_id.txt

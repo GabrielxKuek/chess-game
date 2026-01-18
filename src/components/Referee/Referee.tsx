@@ -50,19 +50,18 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   const [isFightingGameOpen, setIsFightingGameOpen] = useState(false);
   const [showPrayingEffect, setShowPrayingEffect] = useState(false);
   const [isGandhiDialogueOpen, setIsGandhiDialogueOpen] = useState(false);
+  const [pawnCardPlayed, setPawnCardPlayed] = useState(false);
+  const [spawningPawns, setSpawningPawns] = useState<Position[]>([]);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
+  const chessboardRef = useRef<HTMLDivElement>(null);
   
   const [cards, setCards] = useState<CardData[]>([
     { id: "card-1", image: "./cards/ace.png", position: { x: 100, y: 200 } },
-    { id: "card-2", image: "./cards/blueeyes.jpg", position: { x: 200, y: 200 } },
+    { id: "card-2", image: "./cards/blueeyes.jpeg", position: { x: 200, y: 200 } },
     { id: "card-3", image: "./cards/pawn.jpg", position: { x: 300, y: 200 } },
-    { id: "card-4", image: "./cards/pawn.jpg", position: { x: 400, y: 200 } },
     { id: "card-5", image: "./cards/diamond.png", position: { x: 500, y: 200 } },
-    { id: "card-6", image: "./cards/pawn.jpg", position: { x: 150, y: 350 } },
-    { id: "card-7", image: "./cards/pawn.jpg", position: { x: 250, y: 350 } },
-    { id: "card-8", image: "./cards/pawn.jpg", position: { x: 350, y: 350 } },
   ]);
 
   useEffect(() => {
@@ -73,6 +72,15 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
       }, 4000)
     }
   }, [kingCaptured])
+
+  useEffect(() => {
+    if (pawnCardPlayed) {
+      setTimeout(() => {
+        setPawnCardPlayed(false);
+        spawnPawns();
+      }, 4000)
+    }
+  }, [pawnCardPlayed])
 
   // Trigger AI move when it's opponent's turn
   useEffect(() => {
@@ -94,6 +102,43 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
     window.addEventListener('prayingDetected', handlePrayingEvent);
     return () => window.removeEventListener('prayingDetected', handlePrayingEvent);
   }, []);
+
+  function spawnPawns() {
+    const newPawnPositions: Position[] = [];
+    
+    // Collect all empty positions
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        const position = new Position(x, y);
+        const isOccupied = board.pieces.some(p => p.samePosition(position));
+        
+        if (!isOccupied) {
+          newPawnPositions.push(position);
+        }
+      }
+    }
+    
+    // Spawn pawns one by one with animation
+    newPawnPositions.forEach((position, index) => {
+      setTimeout(() => {
+        setSpawningPawns(prev => [...prev, position]);
+        
+        setTimeout(() => {
+          setBoard((prevBoard) => {
+            const clonedBoard = prevBoard.clone();
+            const newPawn = new Pawn(position, TeamType.OUR, false, false, []);
+            clonedBoard.pieces = [...clonedBoard.pieces, newPawn];
+            clonedBoard.calculateAllMoves();
+            return clonedBoard;
+          });
+          
+          // Remove from spawning animation
+          setSpawningPawns(prev => prev.filter(p => !p.samePosition(position)));
+        }, 800);
+        
+      }, index * 50);
+    });
+  }
 
   function checkKingCapture(capturedPiece: Piece | undefined) {
     if (capturedPiece?.isKing) {
@@ -193,8 +238,17 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   }
 
   function playCard(card: CardData, position: { x: number; y: number }): boolean {
-    console.log(`Playing card ${card.id} at position:`, position);
+    if (card.image?.includes('pawn')) {
+      console.log('Pawn card played! Playing clone video...');
+      setPawnCardPlayed(true);
+      
+      // Remove the card from hand after using it
+      setCards(prevCards => prevCards.filter(c => c.id !== card.id));
+      
+      return true;
+    }
     
+    // For other cards, just update position
     const isValidMove = true;
     
     if (isValidMove) {
@@ -391,6 +445,35 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
         </div>
       )}
 
+      {pawnCardPlayed && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3000
+        }}>
+          <video 
+            autoPlay 
+            muted 
+            style={{
+              maxWidth: '80%',
+              maxHeight: '80%',
+              borderRadius: '20px',
+              boxShadow: '0 0 50px rgba(0, 255, 0, 0.5)'
+            }}
+          >
+            <source src="/clone.mp4" type="video/mp4" />
+          </video>
+        </div>
+      )}
+
       {kingCaptured && (
         <div style={{
           position: 'fixed',
@@ -417,6 +500,49 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
           >
             <source src="/sharingan.mp4" type="video/mp4" />
           </video>
+        </div>
+      )}
+
+      {/* Pawn spawn animations - SEPARATE LAYER */}
+      {spawningPawns.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          pointerEvents: 'none',
+          zIndex: 1500
+        }}>
+          {spawningPawns.map((position) => {
+            // Calculate screen position based on chessboard location
+            const chessboardRect = chessboardRef.current?.getBoundingClientRect();
+            if (!chessboardRect) return null;
+            
+            const tileSize = chessboardRect.width / 8;
+            const left = chessboardRect.left + (position.x * tileSize);
+            const top = chessboardRect.top + ((7 - position.y) * tileSize);
+            
+            return (
+              <div
+                key={`spawn-${position.x}-${position.y}`}
+                style={{
+                  position: 'absolute',
+                  left: `${left}px`,
+                  top: `${top}px`,
+                  width: `${tileSize}px`,
+                  height: `${tileSize}px`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}
+              >
+                <div className="smoke-effect">💨</div>
+                <div className="pawn-spawning">♟️</div>
+              </div>
+            );
+          })}
         </div>
       )}
       
@@ -473,8 +599,11 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
         </div>
       </div>
       
+      {/* Game boards - NO wrapping div interfering with clicks */}
       <div className="game-boards">
-        <Chessboard playMove={playMove} pieces={board.pieces} />
+        <div ref={chessboardRef}>
+          <Chessboard playMove={playMove} pieces={board.pieces} />
+        </div>
         <CardGameBoard cards={cards} playCard={playCard} />
       </div>
 

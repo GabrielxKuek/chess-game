@@ -9,6 +9,7 @@ import CardGameBoard from "../CardGame/CardGameBoard";
 import { Howl } from "howler";
 import { getAIMove } from "../../services/ChessAI";
 import FightingGameModal from "../FightingGame/FightingGame";
+import GandhiDialogue from "../GandhiDialogue/GandhiDialogue";
 import "./Referee.css";
 import {
   bishopMove,
@@ -46,8 +47,9 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   const [promotionPawn, setPromotionPawn] = useState<Piece>();
   const [isAIThinking, setIsAIThinking] = useState(false);
   const [kingCaptured, setKingCaptured] = useState(false);
-  const [isFightingGameOpen, setIsFightingGameOpen] = useState(false); 
+  const [isFightingGameOpen, setIsFightingGameOpen] = useState(false);
   const [showPrayingEffect, setShowPrayingEffect] = useState(false);
+  const [isGandhiDialogueOpen, setIsGandhiDialogueOpen] = useState(false);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
     if (kingCaptured) {
       setTimeout(() => {
         setKingCaptured(false);
-        setIsFightingGameOpen(true); // Opens fighting game after video
+        setIsFightingGameOpen(true);
       }, 4000)
     }
   }, [kingCaptured])
@@ -78,6 +80,20 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
       makeAIMove();
     }
   }, [board.totalTurns]);
+
+  useEffect(() => {
+    const handlePrayingEvent = () => {
+      setShowPrayingEffect(true);
+      
+      setTimeout(() => {
+        setShowPrayingEffect(false);
+        setIsGandhiDialogueOpen(true);
+      }, 3000);
+    };
+
+    window.addEventListener('prayingDetected', handlePrayingEvent);
+    return () => window.removeEventListener('prayingDetected', handlePrayingEvent);
+  }, []);
 
   function checkKingCapture(capturedPiece: Piece | undefined) {
     if (capturedPiece?.isKing) {
@@ -91,25 +107,11 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
     onFightingGameStateChange(isFightingGameOpen);
   }, [isFightingGameOpen, onFightingGameStateChange]);
 
-  // Listen for praying detection from App
-  useEffect(() => {
-    const handlePrayingEvent = () => {
-      console.log("🙏 Praying gesture detected in Referee!");
-      
-      setShowPrayingEffect(true);
-      
-      setTimeout(() => {
-        setIsFightingGameOpen(true);
-      }, 1500);
-      
-      setTimeout(() => {
-        setShowPrayingEffect(false);
-      }, 3000);
-    };
-
-    window.addEventListener('prayingDetected', handlePrayingEvent);
-    return () => window.removeEventListener('prayingDetected', handlePrayingEvent);
-  }, []);
+  const handleGandhiSuccess = () => {
+    console.log('Gandhi dialogue completed successfully!');
+    // You can add rewards or special effects here
+    setIsGandhiDialogueOpen(false);
+  };
 
   async function makeAIMove() {
     setIsAIThinking(true);
@@ -222,19 +224,16 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
 
     // Player can only move OUR team pieces
     if (playedPiece.team !== TeamType.OUR) {
-      console.log('❌ Wrong team!');
       return false;
     }
     
     // Player can only move on odd turns
     if (board.totalTurns % 2 !== 1) {
-      console.log('❌ Wrong turn!');
       return false;
     }
     
     // Check if piece has possible moves
     if (playedPiece.possibleMoves === undefined) {
-      console.log('❌ No possible moves!');
       return false;
     }
 
@@ -244,11 +243,9 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
     );
 
     if (!validMove) {
-      console.log('❌ Invalid move! Possible moves:', playedPiece.possibleMoves);
       return false;
     }
     
-    console.log('✅ Valid move!');
 
     let playedMoveIsValid = false;
 
@@ -484,6 +481,12 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
       <FightingGameModal 
         isOpen={isFightingGameOpen} 
         onClose={() => setIsFightingGameOpen(false)} 
+      />
+
+      <GandhiDialogue
+        isOpen={isGandhiDialogueOpen}
+        onClose={() => setIsGandhiDialogueOpen(false)}
+        onSuccess={handleGandhiSuccess}
       />
     </div>
   );

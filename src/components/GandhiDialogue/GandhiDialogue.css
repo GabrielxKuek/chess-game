@@ -1,0 +1,511 @@
+:root {
+  --gandhi-ui-height: 20vh;
+}
+
+/* Love Meter - Left Side */
+.gandhi-love-meter {
+  position: fixed;
+  left: 2rem;
+  top: 20%;
+  transform: translateY(-50%);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: auto;
+  transition: transform 0.1s;
+}
+
+.gandhi-love-meter.shaking {
+  animation: loveMeterShake 0.5s;
+}
+
+@keyframes loveMeterShake {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateY(-50%) translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateY(-50%) translateX(8px); }
+}
+
+.love-meter-label {
+  color: #ff69b4;
+  font-weight: bold;
+  font-size: 1rem;
+  text-align: center;
+  font-family: 'Georgia', 'Palatino', serif;
+  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(255, 105, 180, 0.8),
+               2px 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.love-meter-bar {
+  position: relative;
+  width: 50px;
+  height: 200px;
+  background: linear-gradient(to bottom, 
+    rgba(255, 192, 203, 0.2), 
+    rgba(255, 105, 180, 0.3)
+  );
+  border: 3px solid #ff69b4;
+  border-radius: 25px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 0.5rem 0;
+  box-shadow: 
+    0 0 25px rgba(255, 105, 180, 0.5),
+    inset 0 0 15px rgba(255, 105, 180, 0.2);
+}
+
+.love-meter-bar::before {
+  content: '♥';
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: rgba(255, 105, 180, 0.3);
+  z-index: 0;
+}
+
+.love-meter-bar::after {
+  content: '♥';
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: rgba(255, 105, 180, 0.3);
+  z-index: 0;
+}
+
+.love-meter-fill {
+  width: 100%;
+  transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s;
+  background: linear-gradient(to top, 
+    #ff1493, 
+    #ff69b4,
+    rgba(255, 182, 193, 0.8)
+  );
+  position: relative;
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+  display: none; /* Hide the fill, we'll use hearts instead */
+}
+
+.love-meter-fill.shaking {
+  animation: meterShake 0.5s;
+}
+
+@keyframes meterShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.love-meter-value {
+  text-align: center;
+  color: #ff69b4;
+  font-weight: bold;
+  font-size: 1.1rem;
+  font-family: 'Georgia', serif;
+  text-shadow: 0 0 10px rgba(255, 105, 180, 0.8),
+               2px 2px 4px rgba(0, 0, 0, 0.9);
+  display: none; /* Hide percentage */
+}
+
+.streak-indicator {
+  background: linear-gradient(135deg, 
+    rgba(255, 105, 180, 0.3), 
+    rgba(255, 182, 193, 0.4)
+  );
+  border: 2px solid #ff69b4;
+  border-radius: 12px;
+  padding: 0.75rem;
+  text-align: center;
+  color: #ff1493;
+  font-weight: bold;
+  font-size: 1.2rem;
+  font-family: 'Georgia', serif;
+  animation: pulseGlow 2s infinite;
+  text-shadow: 0 0 8px rgba(255, 105, 180, 0.9);
+  box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 105, 180, 0.8);
+    transform: scale(1.05);
+  }
+}
+
+/* Gandhi Character - Bottom Left */
+.gandhi-character {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: var(--gandhi-ui-height);
+  z-index: 100;
+  transition: filter 0.5s ease;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.4), transparent);
+}
+
+.gandhi-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  border: 4px solid #d4af37;
+  border-radius: 4px;
+  box-shadow: 
+    0 0 40px rgba(212, 175, 55, 0.4),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.gandhi-character.shake-animation {
+  animation: characterShake 0.5s;
+}
+
+@keyframes characterShake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: rotate(-1deg) translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: rotate(1deg) translateX(5px); }
+}
+
+.gandhi-talking {
+  animation: subtle-bounce 0.3s ease-in-out infinite;
+}
+
+@keyframes subtle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.anger-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(139, 0, 0, 0.6), transparent);
+  border-radius: 4px;
+  pointer-events: none;
+  transition: opacity 0.5s;
+  animation: angryPulse 2s infinite;
+}
+
+@keyframes angryPulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Text Box - Bottom Right */
+.gandhi-text-box {
+  position: fixed;
+  bottom: 0;
+  left: 200px;
+  right: 0;
+  height: var(--gandhi-ui-height);
+  max-height: var(--gandhi-ui-height);
+  z-index: 100;
+  background: linear-gradient(135deg, 
+    rgba(20, 15, 10, 0.95) 0%, 
+    rgba(30, 25, 20, 0.98) 50%,
+    rgba(20, 15, 10, 0.95) 100%
+  );
+  border-top: 4px double #d4af37;
+  border-left: 4px double #d4af37;
+  padding: 1rem 1.5rem;
+  box-shadow: 
+    0 -4px 30px rgba(0, 0, 0, 0.8),
+    inset 0 0 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gandhi-text-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(212, 175, 55, 0.03) 2px,
+      rgba(212, 175, 55, 0.03) 4px
+    );
+  pointer-events: none;
+}
+
+.gandhi-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #d4af37;
+  font-family: 'Georgia', 'Palatino', serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(212, 175, 55, 0.5);
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 0.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+.gandhi-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #f5f5dc;
+  font-family: 'Georgia', 'Palatino', serif;
+  font-style: italic;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  min-height: 2.5rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  text-align: justify;
+}
+
+.cursor-blink {
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+  color: #d4af37;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* Choices */
+.gandhi-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.gandhi-choice {
+  background: linear-gradient(to right, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0.05));
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  border-left: 4px solid rgba(212, 175, 55, 0.6);
+  color: #f5f5dc;
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  font-size: 0.9rem;
+  font-family: 'Georgia', 'Palatino', serif;
+  text-align: left;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gandhi-choice::before {
+  content: '❝';
+  position: absolute;
+  left: 0.5rem;
+  font-size: 2rem;
+  color: rgba(212, 175, 55, 0.2);
+  line-height: 0;
+  top: 50%;
+}
+
+.choice-arrow {
+  color: #d4af37;
+  font-weight: bold;
+  width: 1.5rem;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+  flex-shrink: 0;
+}
+
+.gandhi-choice:hover {
+  background: linear-gradient(to right, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1));
+  border-left-width: 6px;
+  padding-left: 1.1rem;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+}
+
+.gandhi-choice.selected {
+  background: linear-gradient(to right, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.15));
+  border-color: rgba(212, 175, 55, 0.8);
+  border-left-color: #d4af37;
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.4),
+    inset 0 0 20px rgba(212, 175, 55, 0.1);
+}
+
+.gandhi-choice.good-choice {
+  border-right: 3px solid rgba(76, 222, 128, 0.5);
+}
+
+.gandhi-choice.good-choice:hover,
+.gandhi-choice.good-choice.selected {
+  border-right-color: rgba(76, 222, 128, 0.8);
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.4),
+    0 0 10px rgba(76, 222, 128, 0.2);
+}
+
+.gandhi-choice.bad-choice {
+  border-right: 3px solid rgba(139, 0, 0, 0.5);
+}
+
+.gandhi-choice.bad-choice:hover,
+.gandhi-choice.bad-choice.selected {
+  border-right-color: rgba(139, 0, 0, 0.8);
+  box-shadow: 
+    0 0 20px rgba(212, 175, 55, 0.4),
+    0 0 10px rgba(139, 0, 0, 0.2);
+}
+
+/* Loading */
+.loading-indicator {
+  text-align: center;
+  color: #d4af37;
+  font-size: 1.1rem;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  padding: 1rem;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Controls Hint */
+.gandhi-controls-hint {
+  text-align: center;
+  color: rgba(212, 175, 55, 0.4);
+  font-size: 0.75rem;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .gandhi-character {
+    width: 160px;
+    height: 16vh;
+    padding: 0.5rem;
+  }
+
+  .gandhi-text-box {
+    left: 160px;
+    height: 16vh;
+    max-height: 16vh;
+    padding: 1rem 1.25rem;
+  }
+
+  .gandhi-love-meter {
+    left: 1rem;
+  }
+
+  .love-meter-bar {
+    width: 30px;
+    height: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gandhi-character {
+    width: 120px;
+    height: 15vh;
+    padding: 0.5rem;
+  }
+
+  .gandhi-text-box {
+    left: 120px;
+    height: 15vh;
+    max-height: 15vh;
+    padding: 0.75rem 1rem;
+  }
+
+  .gandhi-love-meter {
+    left: 0.5rem;
+    top: 2rem;
+    transform: none;
+  }
+
+  .love-meter-bar {
+    width: 25px;
+    height: 150px;
+  }
+
+  .gandhi-text {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .gandhi-choice {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .gandhi-name {
+    font-size: 0.9rem;
+  }
+}

@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Hands, Results } from '@mediapipe/hands';
+import { useEffect, useRef } from 'react';
+import { Hands, Results, HAND_CONNECTIONS } from '@mediapipe/hands';
 import { Camera } from '@mediapipe/camera_utils';
+import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
 
 interface HandGestureDetectorProps {
   onPrayingDetected: () => void;
@@ -14,6 +15,7 @@ export default function HandGestureDetector({
   showVideo = false,
 }: HandGestureDetectorProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const handsRef = useRef<Hands | null>(null);
   const cameraRef = useRef<Camera | null>(null);
 
@@ -21,7 +23,7 @@ export default function HandGestureDetector({
   const TRIGGER_COOLDOWN = 3000; // 3 seconds
 
   useEffect(() => {
-    if (!isActive || !videoRef.current) return;
+    if (!isActive || !videoRef.current || !canvasRef.current) return;
 
     const hands = new Hands({
       locateFile: (file) =>
@@ -94,36 +96,82 @@ export default function HandGestureDetector({
   };
 
   const onResults = (results: Results) => {
-    if (!results.multiHandLandmarks) return;
+    if (!canvasRef.current) return;
 
-    const praying = isPrayingGesture(results.multiHandLandmarks);
+    const canvasCtx = canvasRef.current.getContext('2d');
+    if (!canvasCtx) return;
 
-    if (praying) {
-      const now = Date.now();
-      if (now - lastTriggerTime.current > TRIGGER_COOLDOWN) {
-        lastTriggerTime.current = now;
-        onPrayingDetected();
+    // Clear canvas
+    canvasCtx.save();
+    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    // Draw the video frame
+    if (results.image) {
+      canvasCtx.drawImage(results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+
+    // Draw hand landmarks
+    if (results.multiHandLandmarks) {
+      for (const landmarks of results.multiHandLandmarks) {
+        // Draw connections (lines between joints)
+        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+          color: '#00FF00',
+          lineWidth: 2
+        });
+        
+        // Draw landmarks (dots on joints)
+        drawLandmarks(canvasCtx, landmarks, {
+          color: '#FF0000',
+          lineWidth: 1,
+          radius: 3
+        });
+      }
+
+      // Check for praying gesture
+      const praying = isPrayingGesture(results.multiHandLandmarks);
+
+      if (praying) {
+        const now = Date.now();
+        if (now - lastTriggerTime.current > TRIGGER_COOLDOWN) {
+          lastTriggerTime.current = now;
+          onPrayingDetected();
+        }
       }
     }
+
+    canvasCtx.restore();
   };
 
-  // Invisible video element ONLY for MediaPipe input
   return (
-  <video
-    ref={videoRef}
-    autoPlay
-    playsInline
-    muted
-    style={{
+    <div style={{
       position: 'fixed',
       bottom: '10px',
       right: '10px',
-      width: '320px',
-      height: '240px',
       zIndex: 10001,
-      border: showVideo ? '2px solid red' : 'none',
       display: showVideo ? 'block' : 'none',
-    }}
-  />
-);
+    }}>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        style={{
+          position: 'absolute',
+          visibility: 'hidden',
+          width: '320px',
+          height: '240px',
+        }}
+      />
+      <canvas
+        ref={canvasRef}
+        width={320}
+        height={240}
+        style={{
+          border: '2px solid red',
+          width: '320px',
+          height: '240px',
+        }}
+      />
+    </div>
+  );
 }

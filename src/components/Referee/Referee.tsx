@@ -35,7 +35,7 @@ const captureSound = new Howl({
 });
 
 const checkmateSound = new Howl({
-  src: ["/sounds/move-check.mp3"],
+  src: ["/sounds/move-check.mp4"],
 });
 
 interface RefereeProps {
@@ -51,6 +51,7 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   const [showPrayingEffect, setShowPrayingEffect] = useState(false);
   const [isGandhiDialogueOpen, setIsGandhiDialogueOpen] = useState(false);
   const [pawnCardPlayed, setPawnCardPlayed] = useState(false);
+  const [playFoot, setPlayFoot] = useState(false);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
@@ -100,6 +101,16 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
     window.addEventListener('prayingDetected', handlePrayingEvent);
     return () => window.removeEventListener('prayingDetected', handlePrayingEvent);
   }, []);
+
+  function handleEmptySpaceClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setPlayFoot(true);
+    console.log('scratch foot chat');
+    setTimeout(()=>{
+      setPlayFoot(false);
+    },3000);
+  }
 
   function spawnPawns() {
     setBoard((prevBoard) => {
@@ -492,6 +503,35 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
           </video>
         </div>
       )}
+
+      {playFoot && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000
+        }}>
+          <video 
+            autoPlay 
+            muted 
+            style={{
+              maxWidth: '80%',
+              maxHeight: '80%',
+              borderRadius: '20px',
+              boxShadow: '0 0 50px rgba(255, 0, 0, 0.5)'
+            }}
+          >
+            <source src="/foot.mp4" type="video/mp4" />
+          </video>
+        </div>
+      )}
       
       {isAIThinking && (
         <div style={{
@@ -505,7 +545,7 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
           textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
           zIndex: 1000
         }}>
-          🤖 AI is thinking...
+          Performing Fuhrer Transformation over the Cartesian plane...
         </div>
       )}
       
@@ -549,6 +589,28 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
       <div className="game-boards">
         <Chessboard playMove={playMove} pieces={board.pieces} />
         <CardGameBoard cards={cards} playCard={playCard} />
+      </div>
+
+      {/* Empty clickable space below the game boards */}
+      <div 
+        onClick={handleEmptySpaceClick}
+        style={{
+          width: '100%',
+          minHeight: '200px',
+          cursor: 'pointer',
+          position: 'relative',
+          opacity: 0
+        }}
+      >
+        <div style={{
+          color: 'white',
+          textAlign: 'center',
+          paddingTop: '50px',
+          fontSize: '20px',
+          opacity: 0.5
+        }}>
+          Click here
+        </div>
       </div>
 
       <FightingGameModal 

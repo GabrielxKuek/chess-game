@@ -26,12 +26,49 @@
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: none; /* Board is not clickable, only cards are */
+  pointer-events: none;
 }
 
 .card-container > * {
-  pointer-events: auto; /* Cards are clickable */
-  position: absolute; /* Manual positioning */
+  pointer-events: auto;
+  position: absolute;
+}
+
+/* Card Hand Styles */
+.card-hand {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: all 0.4s ease;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.card-hand.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.card-hand.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(200px);
+  pointer-events: none;
+}
+
+.card-in-hand {
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.card-in-hand:hover {
+  transform: translateY(-10px);
 }
 
 #cardback {
@@ -40,4 +77,9 @@
   position: absolute;
   left: 650px;
   top: 60px;
+  transition: transform 0.2s ease;
+}
+
+#cardback:hover {
+  transform: scale(1.05);
 }

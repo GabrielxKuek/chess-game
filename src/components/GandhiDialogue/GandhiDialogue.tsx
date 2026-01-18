@@ -18,10 +18,9 @@ interface GandhiDialogueProps {
   onSuccess: () => void;
 }
 
-// Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Only for development!
+  dangerouslyAllowBrowser: true
 });
 
 // Model configuration - CHANGE THIS to your fine-tuned model when ready!

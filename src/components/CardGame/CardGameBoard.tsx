@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import "./CardGameBoard.css";
 import Card from "./Card";
 
-// You'll need to define these based on your game logic
 interface CardData {
   id: string;
   image?: string;
@@ -15,104 +14,50 @@ interface Props {
 }
 
 export default function CardGameBoard({ playCard, cards }: Props) {
-  const [activeCard, setActiveCard] = useState<HTMLElement | null>(null);
-  const [grabPosition, setGrabPosition] = useState<{ x: number; y: number }>({ x: -1, y: -1 });
+  const [activeCard, setActiveCard] = useState<CardData | null>(null);
+  const [showHand, setShowHand] = useState(false);
   const boardRef = useRef<HTMLDivElement>(null);
 
-  function grabCard(e: React.MouseEvent) {
-    const element = e.target as HTMLElement;
-    const board = boardRef.current;
+  function handleCardClick(card: CardData, e: React.MouseEvent) {
+    e.stopPropagation();
+    console.log('Card clicked:', card);
     
-    if (element.classList.contains("card") && board) {
-      setGrabPosition({
-        x: e.clientX - board.offsetLeft,
-        y: e.clientY - board.offsetTop
-      });
-
-      const x = e.clientX - 50;
-      const y = e.clientY - 70;
-      element.style.position = "absolute";
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
-      element.style.zIndex = "1000";
-
-      setActiveCard(element);
-    }
+    // Play the card immediately
+    playCard(card, { x: 0, y: 0 });
   }
 
-  function moveCard(e: React.MouseEvent) {
-    const board = boardRef.current;
-    if (activeCard && board) {
-      const minX = board.offsetLeft - 25;
-      const minY = board.offsetTop - 25;
-      const maxX = board.offsetLeft + board.clientWidth - 75;
-      const maxY = board.offsetTop + board.clientHeight - 115;
-      const x = e.clientX - 50;
-      const y = e.clientY - 70;
-      
-      activeCard.style.position = "absolute";
-
-      if (x < minX) {
-        activeCard.style.left = `${minX}px`;
-      } else if (x > maxX) {
-        activeCard.style.left = `${maxX}px`;
-      } else {
-        activeCard.style.left = `${x}px`;
-      }
-
-      if (y < minY) {
-        activeCard.style.top = `${minY}px`;
-      } else if (y > maxY) {
-        activeCard.style.top = `${maxY}px`;
-      } else {
-        activeCard.style.top = `${y}px`;
-      }
-    }
-  }
-
-  function dropCard(e: React.MouseEvent) {
-    const board = boardRef.current;
-    if (activeCard && board) {
-      const x = e.clientX - board.offsetLeft;
-      const y = e.clientY - board.offsetTop;
-
-      const currentCard = cards.find((c) =>
-        c.position.x === grabPosition.x && c.position.y === grabPosition.y
-      );
-
-      if (currentCard) {
-        const success = playCard(currentCard, { x, y });
-
-        if (!success) {
-          // Reset the card position
-          activeCard.style.position = "relative";
-          activeCard.style.removeProperty("top");
-          activeCard.style.removeProperty("left");
-          activeCard.style.removeProperty("z-index");
-        }
-      }
-      setActiveCard(null);
-    }
+  function toggleHand() {
+    setShowHand(!showHand);
   }
 
   return (
     <div
-      onMouseMove={(e) => moveCard(e)}
-      onMouseDown={(e) => grabCard(e)}
-      onMouseUp={(e) => dropCard(e)}
       id="card-game-board"
       ref={boardRef}
     >
-      <div className="card-container modal hidden">
-        {cards.map((card) => (
-          <Card
+      <div className={`card-hand ${showHand ? 'visible' : 'hidden'}`}>
+        {cards.map((card, index) => (
+          <div 
             key={card.id}
-            image={card.image}
-          />
+            className="card-in-hand"
+            onClick={(e) => handleCardClick(card, e)}
+            style={{
+              left: `${index * 60}px`,
+              zIndex: index
+            }}
+          >
+            <Card image={card.image} />
+          </div>
         ))}
       </div>
 
-      <img id="cardback" src="./cards/cardback.webp" className=""/>
+      <img 
+        id="cardback" 
+        src="./cards/cardback.webp" 
+        onClick={toggleHand}
+        style={{ cursor: 'pointer' }}
+        alt="Card Deck"
+      />
     </div>
   );
 }

@@ -51,11 +51,9 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   const [showPrayingEffect, setShowPrayingEffect] = useState(false);
   const [isGandhiDialogueOpen, setIsGandhiDialogueOpen] = useState(false);
   const [pawnCardPlayed, setPawnCardPlayed] = useState(false);
-  const [spawningPawns, setSpawningPawns] = useState<Position[]>([]);
   
   const modalRef = useRef<HTMLDivElement>(null);
   const checkmateModalRef = useRef<HTMLDivElement>(null);
-  const chessboardRef = useRef<HTMLDivElement>(null);
   
   const [cards, setCards] = useState<CardData[]>([
     { id: "card-1", image: "./cards/ace.png", position: { x: 100, y: 200 } },
@@ -104,39 +102,31 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
   }, []);
 
   function spawnPawns() {
-    const newPawnPositions: Position[] = [];
-    
-    // Collect all empty positions
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        const position = new Position(x, y);
-        const isOccupied = board.pieces.some(p => p.samePosition(position));
-        
-        if (!isOccupied) {
-          newPawnPositions.push(position);
+    setBoard((prevBoard) => {
+      const clonedBoard = prevBoard.clone();
+      const newPawns: Piece[] = [];
+      
+      // Find all empty positions
+      for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+          const position = new Position(x, y);
+          const isOccupied = clonedBoard.pieces.some(p => p.samePosition(position));
+          
+          if (!isOccupied) {
+            // Create a new pawn at this position
+            const newPawn = new Pawn(position, TeamType.OUR, false, false, []);
+            newPawns.push(newPawn);
+          }
         }
       }
-    }
-    
-    // Spawn pawns one by one with animation
-    newPawnPositions.forEach((position, index) => {
-      setTimeout(() => {
-        setSpawningPawns(prev => [...prev, position]);
-        
-        setTimeout(() => {
-          setBoard((prevBoard) => {
-            const clonedBoard = prevBoard.clone();
-            const newPawn = new Pawn(position, TeamType.OUR, false, false, []);
-            clonedBoard.pieces = [...clonedBoard.pieces, newPawn];
-            clonedBoard.calculateAllMoves();
-            return clonedBoard;
-          });
-          
-          // Remove from spawning animation
-          setSpawningPawns(prev => prev.filter(p => !p.samePosition(position)));
-        }, 800);
-        
-      }, index * 50);
+      
+      // Add all new pawns to the board
+      clonedBoard.pieces = [...clonedBoard.pieces, ...newPawns];
+      
+      // Recalculate all possible moves
+      clonedBoard.calculateAllMoves();
+      
+      return clonedBoard;
     });
   }
 
@@ -502,49 +492,6 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
           </video>
         </div>
       )}
-
-      {/* Pawn spawn animations - SEPARATE LAYER */}
-      {spawningPawns.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          pointerEvents: 'none',
-          zIndex: 1500
-        }}>
-          {spawningPawns.map((position) => {
-            // Calculate screen position based on chessboard location
-            const chessboardRect = chessboardRef.current?.getBoundingClientRect();
-            if (!chessboardRect) return null;
-            
-            const tileSize = chessboardRect.width / 8;
-            const left = chessboardRect.left + (position.x * tileSize);
-            const top = chessboardRect.top + ((7 - position.y) * tileSize);
-            
-            return (
-              <div
-                key={`spawn-${position.x}-${position.y}`}
-                style={{
-                  position: 'absolute',
-                  left: `${left}px`,
-                  top: `${top}px`,
-                  width: `${tileSize}px`,
-                  height: `${tileSize}px`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  pointerEvents: 'none'
-                }}
-              >
-                <div className="smoke-effect">💨</div>
-                <div className="pawn-spawning">♟️</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
       
       {isAIThinking && (
         <div style={{
@@ -599,11 +546,8 @@ export default function Referee({ onFightingGameStateChange }: RefereeProps) {
         </div>
       </div>
       
-      {/* Game boards - NO wrapping div interfering with clicks */}
       <div className="game-boards">
-        <div ref={chessboardRef}>
-          <Chessboard playMove={playMove} pieces={board.pieces} />
-        </div>
+        <Chessboard playMove={playMove} pieces={board.pieces} />
         <CardGameBoard cards={cards} playCard={playCard} />
       </div>
 
